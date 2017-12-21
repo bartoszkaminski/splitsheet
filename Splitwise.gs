@@ -60,7 +60,7 @@ function filterExpenses(expenses, currentUserId, categories) {
   var expensesToReturn = [];
   for (i = 0; i < expenses.length; i++) {
     var fullExpense = expenses[i];
-    if (fullExpense.deleted_at != null || fullExpense.category.id == 18) { continue; }
+    if (fullExpense.deleted_at != null || fullExpense.payment == true || fullExpense.category.id == 18) { continue; }
    
     var users = fullExpense.users;
     var cost = null;
