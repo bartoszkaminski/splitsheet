@@ -35,9 +35,15 @@ function getExpenses() {
   };
   
   var sheet = SpreadsheetApp.getActiveSheet();
-  var month = sheet.getIndex();
-  var from = new Date(2017,month-1,1); //months are 0-11
-  var to = new Date(2017,month,1);
+  var from = sheet.getRange(2, 17).getValue();
+  var to = sheet.getRange(2, 19).getValue();
+  try {
+    from.setSeconds(from.getSeconds() - 1);
+    to.setDate(to.getDate() + 1);
+  } catch(e) {
+    throw 'Please specify correct date range';
+  }
+  
   var payload = {
     "limit": "500",
     "dated_after": from.toJSON(),
