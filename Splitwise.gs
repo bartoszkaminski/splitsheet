@@ -12,9 +12,10 @@ function updateExpenses() {
      Logger.log("App has access.");
      
      var categories = getCategories();
+     var travelGroupsIds = getTravelGroupsIds();
      var currentUserId = getCurrentUserId();
      var expenses = getExpenses();
-     var filteredExpenses = filterExpenses(expenses, currentUserId, categories);
+     var filteredExpenses = filterExpenses(expenses, currentUserId, categories, travelGroupsIds);
      var sortedExpenses = sortExpenses(filteredExpenses);
      exportExpenses(sortedExpenses);
    }
@@ -56,13 +57,13 @@ function getExpenses() {
     "method" : "GET",
     "muteHttpExceptions": true
   };
-  
+    
   var expensesResponse = UrlFetchApp.fetch(expensesPath, options);
   var expenses = JSON.parse(expensesResponse.getContentText()).expenses;
   return expenses;
 }
 
-function filterExpenses(expenses, currentUserId, categories) {
+function filterExpenses(expenses, currentUserId, categories, travelGroupsIds) {
   var expensesToReturn = [];
   for (i = 0; i < expenses.length; i++) {
     var fullExpense = expenses[i];
@@ -85,9 +86,18 @@ function filterExpenses(expenses, currentUserId, categories) {
       cost: cost,
       currency: fullExpense.currency_code
     };
-    expensesToReturn.push(expense);
+    var travelAwareExpense = markAsTravelIfNeeded(fullExpense, expense, travelGroupsIds);
+    expensesToReturn.push(travelAwareExpense);
   }
   return expensesToReturn;
+}
+
+function markAsTravelIfNeeded(fullExpense, expense, travelGroupsIds) {
+  if (travelGroupsIds.indexOf(fullExpense.group_id) > -1) {
+    expense.category = "Entertainment";
+    expense.subcategory = "Travel";
+  }
+  return expense;
 }
 
 function sortExpenses(expenses) {
@@ -130,6 +140,32 @@ function getCurrentUserId() {
   var userResponse = UrlFetchApp.fetch(currentUserPath, options);
   var currentUserId = JSON.parse(userResponse.getContentText()).user.id;
   return currentUserId;
+}
+
+function getTravelGroupsIds() {
+  var groupsPath = "https://secure.splitwise.com/api/v3.0/get_groups";
+  var headers = {
+       "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
+     };
+     
+     var options = {
+       "headers": headers,
+       "method" : "GET",
+       "muteHttpExceptions": true
+    };
+  
+  var groupsResponse = UrlFetchApp.fetch(groupsPath, options);
+  var groups = JSON.parse(groupsResponse.getContentText()).groups;
+  
+  var travelGroupsIdsToReturn = [];
+  for (i = 0; i < groups.length; i++) {
+    var group = groups[i];
+    Logger.log(group.group_type);
+    if (group.group_type == "trip" || group.group_type == "travel") {
+      travelGroupsIdsToReturn.push(group.id);
+    }
+  }
+  return travelGroupsIdsToReturn;
 }
 
 function getCategories() {
