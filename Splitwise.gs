@@ -100,6 +100,8 @@ function sortExpenses(expenses) {
 }
 
 function exportExpenses(expenses) {
+  var configSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Config');
+  var userCurrency = configSheet.getRange(2, 4).getValue();
   var sheet = SpreadsheetApp.getActiveSheet();
   var allCells = sheet.getRange(3, 1, 197, 5);
   allCells.clearContent();
@@ -111,7 +113,7 @@ function exportExpenses(expenses) {
     sheet.getRange(firstCell+i, 2).setValue(expense.category);
     sheet.getRange(firstCell+i, 3).setValue(expense.subcategory);
     sheet.getRange(firstCell+i, 4).setValue(expense.description);
-    if (expense.currency == "PLN") {
+    if (expense.currency == userCurrency) {
       sheet.getRange(firstCell+i, 5).setValue(expense.cost.replace(".", ","));
     } else {
       sheet.getRange(firstCell+i, 5).setValue(0);
