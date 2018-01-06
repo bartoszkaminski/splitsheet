@@ -8,9 +8,7 @@ function onOpen() {
 function updateExpenses() {
    var service = getSplitwiseService();
    
-   if (service.hasAccess()) {
-     Logger.log("App has access.");
-     
+   if (service.hasAccess()) {     
      var categories = getCategories();
      var travelGroupsIds = getTravelGroupsIds();
      var currentUserId = getCurrentUserId();
@@ -19,13 +17,10 @@ function updateExpenses() {
      var sortedExpenses = sortExpenses(filteredExpenses);
      exportExpenses(sortedExpenses);
    }
-   else {
-     Logger.log("App has no access yet.");
-     
-     // open this url to gain authorization from Splitwise
+   else {     
      var authorizationUrl = service.getAuthorizationUrl();
-     Logger.log("Open the following URL and re-run the script: %s",
-         authorizationUrl);
+     var ui = SpreadsheetApp.getUi();
+     ui.alert("Spreadsheet has no access yet. Open the following URL to authorize this spreadsheet in Splitwise and try again: " + authorizationUrl);
    }
  }
 
