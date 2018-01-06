@@ -36,8 +36,8 @@ function getExpenses() {
   };
   
   var sheet = SpreadsheetApp.getActiveSheet();
-  var from = sheet.getRange(2, 17).getValue();
-  var to = sheet.getRange(2, 19).getValue();
+  var from = sheet.getRange(1, 21).getValue();
+  var to = sheet.getRange(2, 21).getValue();
   try {
     from.setSeconds(from.getSeconds() - 1);
     to.setDate(to.getDate() + 1);
