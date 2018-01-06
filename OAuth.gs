@@ -1,5 +1,6 @@
-var clientId = '';
-var clientSecret = '';
+var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Config');
+var clientId = sheet.getRange(2, 2).getValue();
+var clientSecret = sheet.getRange(3, 2).getValue();
  
 function getSplitwiseService() {
   return OAuth2.createService('Splitwise')
