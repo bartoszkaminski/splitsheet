@@ -10,10 +10,10 @@ function updateExpenses() {
    
    if (service.hasAccess()) {     
      var categories = getCategories();
-     var travelGroupsIds = getTravelGroupsIds();
+     var tripGroupsIds = getTripGroupsIds();
      var currentUserId = getCurrentUserId();
      var expenses = getExpenses();
-     var filteredExpenses = filterExpenses(expenses, currentUserId, categories, travelGroupsIds);
+     var filteredExpenses = filterExpenses(expenses, currentUserId, categories, tripGroupsIds);
      var sortedExpenses = sortExpenses(filteredExpenses);
      exportExpenses(sortedExpenses);
    }
@@ -58,7 +58,7 @@ function getExpenses() {
   return expenses;
 }
 
-function filterExpenses(expenses, currentUserId, categories, travelGroupsIds) {
+function filterExpenses(expenses, currentUserId, categories, tripGroupsIds) {
   var expensesToReturn = [];
   for (i = 0; i < expenses.length; i++) {
     var fullExpense = expenses[i];
@@ -81,16 +81,16 @@ function filterExpenses(expenses, currentUserId, categories, travelGroupsIds) {
       cost: cost,
       currency: fullExpense.currency_code
     };
-    var travelAwareExpense = markAsTravelIfNeeded(fullExpense, expense, travelGroupsIds);
-    expensesToReturn.push(travelAwareExpense);
+    var tripAwareExpense = markAsTripIfNeeded(fullExpense, expense, tripGroupsIds);
+    expensesToReturn.push(tripAwareExpense);
   }
   return expensesToReturn;
 }
 
-function markAsTravelIfNeeded(fullExpense, expense, travelGroupsIds) {
-  if (travelGroupsIds.indexOf(fullExpense.group_id) > -1) {
+function markAsTripIfNeeded(fullExpense, expense, tripGroupsIds) {
+  if (tripGroupsIds.indexOf(fullExpense.group_id) > -1) {
     expense.category = "Entertainment";
-    expense.subcategory = "Travel";
+    expense.subcategory = "Trips";
   }
   return expense;
 }
@@ -139,7 +139,7 @@ function getCurrentUserId() {
   return currentUserId;
 }
 
-function getTravelGroupsIds() {
+function getTripGroupsIds() {
   var groupsPath = "https://secure.splitwise.com/api/v3.0/get_groups";
   var headers = {
        "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
@@ -154,15 +154,14 @@ function getTravelGroupsIds() {
   var groupsResponse = UrlFetchApp.fetch(groupsPath, options);
   var groups = JSON.parse(groupsResponse.getContentText()).groups;
   
-  var travelGroupsIdsToReturn = [];
+  var tripGroupsIdsToReturn = [];
   for (i = 0; i < groups.length; i++) {
     var group = groups[i];
-    Logger.log(group.group_type);
     if (group.group_type == "trip" || group.group_type == "travel") {
-      travelGroupsIdsToReturn.push(group.id);
+      tripGroupsIdsToReturn.push(group.id);
     }
   }
-  return travelGroupsIdsToReturn;
+  return tripGroupsIdsToReturn;
 }
 
 function getCategories() {
