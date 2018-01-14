@@ -13,21 +13,19 @@ I was looking for a convenient way to maintain home budget for some time and soo
 ## How to get started
 
 #### Splitwise API key
-You need **Splitwise API key** to use the script. Go to your [Splitwise dashboard](https://secure.splitwise.com/#/dashboard), open your account settings (*Your account* under your avatar) and find *Your apps* in *Advanced features*. Click *Register your application*.
-Fill out the required fields:
+You need **Splitwise API key** to use the script. Go to your [Splitwise dashboard](https://secure.splitwise.com/#/dashboard), open your account settings (*Your account* under your avatar) and find *Your apps* in *Advanced features*. Click *Register your application* and fill out the required fields:
+- **Application name**: Splitsheet
+- **Application description**: Splitsheet is an expense tracker Google Docs spreadsheet with a script that pulls data from Splitwise
+- **Homepage URL**: https://github.com/bartoszkaminski/splitsheet
 
-**Application name**: Splitwise  
-**Application description**: Splitsheet is an expense tracker Google Docs spreadsheet with a script that pulls data from Splitwise  
-**Homepage URL**: https://github.com/bartoszkaminski/splitsheet  
-Optional fields can remain blank.
-
-Click *Register and get API key* to obtain **Consumer Key** and **Consumer Secret** required in the next step.
+Optional fields can remain blank.  
+Click *Register and get API key* to obtain your **Consumer Key** and **Consumer Secret** required in the next step.
 
 #### Config
 Open a [template spreadsheet](https://docs.google.com/spreadsheets/d/1jmyvqq2Z8VQJNCVITOizY_Dmv4KzZcVXAnBq0fPWM_4/edit?usp=sharing) and **make a copy**. Once you have your own Splitsheet, open *Config* sheet and fill in previously obtained Splitwise **Consumer Key** and **Consumer Secret**. Also, choose a **default currency** by providing its code (USD, EUR, PLN etc).
 
 #### Authorize Splitsheet
-Open a month sheet, choose *Splitwise* -> *Update* from the menu. Follow link from the dialog to **authorize** Splitsheet in Splitwise. One you get *"Success! You can close this tab"* response, you are all set! Use *Update* once again and your expenses should be visible.
+Open a month sheet, choose *Splitwise* -> *Update* from the menu. Follow link from the dialog to **authorize** Splitsheet in Splitwise. One you get *"Success! You can close this tab"* response, you are all set! Use *Splitwise* -> *Update* once again and your expenses should be visible.
 
 ## Usage
 There are some things you need to know before using Splitsheet.
@@ -47,4 +45,5 @@ You can choose a date range for each month in the upper right corner of the shee
 #### Trips expenses
 I decided that *Dining out*, *Car* or *Groceries* while on a trip is something different than at home. That's why the script changes category of all expenses that belong to groups of type *Trip* to a new category *Entertainment/Trips*
 
-If you are unhappy with any customization I made, feel free to fork the project and modify it to suit your needs 😉
+---
+If you are unhappy with any customization I made, feel free to fork this repository and modify it to suit your needs 😉
