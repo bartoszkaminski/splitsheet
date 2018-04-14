@@ -25,11 +25,6 @@ function updateExpenses() {
  }
 
 function getExpenses() {
-  var expensesPath = "https://secure.splitwise.com/api/v3.0/get_expenses";
-  var headers = {
-    "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
-  };
-  
   var sheet = SpreadsheetApp.getActiveSheet();
   var from = sheet.getRange(1, 21).getValue();
   var to = sheet.getRange(2, 21).getValue();
@@ -40,17 +35,14 @@ function getExpenses() {
     throw 'Please specify correct date range';
   }
   
-  var payload = {
-    "limit": "500",
-    "dated_after": from.toJSON(),
-    "dated_before": to.toJSON()
+  var expensesPath = "https://secure.splitwise.com/api/v3.0/get_expenses?limit=500&dated_after="+from.toJSON()+"&dated_before="+to.toJSON();
+  var headers = {
+    "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
   };
   
   var options = {
     "headers": headers,
-    "payload": payload,
     "method" : "GET",
-    "muteHttpExceptions": true
   };
     
   var expensesResponse = UrlFetchApp.fetch(expensesPath, options);
@@ -130,8 +122,7 @@ function getCurrentUserId() {
      
      var options = {
        "headers": headers,
-       "method" : "GET",
-       "muteHttpExceptions": true
+       "method" : "GET"
     };
  
   var userResponse = UrlFetchApp.fetch(currentUserPath, options);
@@ -147,9 +138,8 @@ function getTripGroupsIds() {
      
      var options = {
        "headers": headers,
-       "method" : "GET",
-       "muteHttpExceptions": true
-    };
+       "method" : "GET"
+     };
   
   var groupsResponse = UrlFetchApp.fetch(groupsPath, options);
   var groups = JSON.parse(groupsResponse.getContentText()).groups;
@@ -172,8 +162,7 @@ function getCategories() {
      
      var options = {
        "headers": headers,
-       "method" : "GET",
-       "muteHttpExceptions": true
+       "method" : "GET"
     };
   
   var categoriesResponse = UrlFetchApp.fetch(categoriesPath, options);
