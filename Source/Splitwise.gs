@@ -101,15 +101,16 @@ function exportExpenses(expenses) {
   var firstCell = 3;
   for (i = 0; i < expenses.length; i++) {
     var expense = expenses[i];
+    var cost = expense.cost.replace(".", ",");
     sheet.getRange(firstCell+i, 1).setValue(expense.date);
     sheet.getRange(firstCell+i, 2).setValue(expense.category);
     sheet.getRange(firstCell+i, 3).setValue(expense.subcategory);
     sheet.getRange(firstCell+i, 4).setValue(expense.description);
     if (expense.currency == userCurrency) {
-      sheet.getRange(firstCell+i, 5).setValue(expense.cost.replace(".", ","));
+      sheet.getRange(firstCell+i, 5).setValue(cost);
     } else {
-      sheet.getRange(firstCell+i, 5).setValue(0);
-      sheet.getRange(firstCell+i, 5).setBackground("red");
+      sheet.getRange(firstCell+i, 5).setNote(cost + " " + expense.currency)
+      sheet.getRange(firstCell+i, 5).setFormula('=Index(GOOGLEFINANCE("CURRENCY:' + expense.currency + userCurrency + '";"price";A' + (firstCell+i) + ';0;"DAILY");2;2)*' + cost)
     }
   }
 }
