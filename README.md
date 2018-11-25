@@ -37,7 +37,7 @@ The most convenient way to track personal expenses in Splitwise is to create a g
 Unfortunately, Splitwise marks *Settle all balances* transaction with *General* category which messes up expenses summary. That's why Splitsheet filteres out all *General* transactions. Please use specific categories.
 
 #### Currency
-Splitsheet currently supports only one currency which must be specified in *Config* sheet. If you have expenses in other currencies, their cost will be showed as 0 and marked with red color.
+Splitsheet supports multiple currencies but all expenses are presented in user's currency which must be specified in *Config* sheet. Conversion rate from the date of the transacion is used.
 
 #### Date range
 You can choose a date range for each month in the upper right corner of the sheet. Provide a closed range, expenses from both endpoints dates' will be included.
