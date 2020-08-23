@@ -62,7 +62,9 @@ function filterExpenses(expenses, currentUserId, categories, tripGroupsIds) {
   var expensesToReturn = [];
   for (i = 0; i < expenses.length; i++) {
     var fullExpense = expenses[i];
-    if (fullExpense.deleted_at != null || fullExpense.payment == true || fullExpense.category.id == 18) { continue; }
+    if (fullExpense.deleted_at != null || fullExpense.payment == true || fullExpense.creation_method == "debt_consolidation") { 
+      continue; 
+    }
    
     var users = fullExpense.users;
     var cost = null;
