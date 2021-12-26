@@ -5,7 +5,7 @@ Splitsheet is an expense tracker Google Docs spreadsheet template with a script 
 
 ![Splitsheet screenshot](Screens/month_sheet.png)
 
-[Check out the template!](https://docs.google.com/spreadsheets/d/1jmyvqq2Z8VQJNCVITOizY_Dmv4KzZcVXAnBq0fPWM_4/edit?usp=sharing)
+[Check out the template!](https://docs.google.com/spreadsheets/d/1yd6dFwXpsQtOgTXvPW8B_CJdOSsHE2eYbk8MKAfc4ZY/edit#gid=1597369380)
 
 ## Idea
 I was looking for a convenient way to maintain home budget for some time and soon realized that a good portion of my expenses (ones shared with my friends) is already tracked in Splitwise. I wanted to avoid duplicating these expenses into a "proper" budget app and decided to use Splitwise for personal expenses as well. While being a great expenses sharing app, Splitwise has its limitations when it comes to analyzing your spending. **That's where Splitsheet comes in!**
@@ -13,7 +13,7 @@ I was looking for a convenient way to maintain home budget for some time and soo
 ## How to get started
 
 #### Config
-Open a [template spreadsheet](https://docs.google.com/spreadsheets/d/1Ochf-oudqJyY8cuDH2GMY9JhGq7nkl0JgkQwcaEugDc/edit#gid=1538565547) and **make a copy**. Once you have your own Splitsheet, open *Config* sheet and fill in previously obtained Splitwise **Consumer Key** and **Consumer Secret**. Also, choose a **default currency** by providing its code (USD, EUR, PLN etc).
+Open a [template spreadsheet](https://docs.google.com/spreadsheets/d/1yd6dFwXpsQtOgTXvPW8B_CJdOSsHE2eYbk8MKAfc4ZY/edit#gid=1597369380) and **make a copy**. Once you have your own Splitsheet, open *Config* sheet and fill in previously obtained Splitwise **Consumer Key** and **Consumer Secret**. Also, choose a **default currency** by providing its code (USD, EUR, PLN etc).
 
 #### Splitwise API key
 1. You need **Splitwise API key** to use the script. Go to your [Splitwise app dashboard](https://secure.splitwise.com/apps)
