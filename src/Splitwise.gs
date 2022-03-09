@@ -25,6 +25,11 @@ function updateExpenses() {
  }
 
 function getExpenses() {
+  var expensesPath = "https://secure.splitwise.com/api/v3.0/get_expenses";
+  var headers = {
+    "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
+  };
+  
   var sheet = SpreadsheetApp.getActiveSheet();
   var from = sheet.getRange(1, 21).getValue();
   var to = sheet.getRange(2, 21).getValue();
@@ -35,14 +40,17 @@ function getExpenses() {
     throw 'Please specify correct date range';
   }
   
-  var expensesPath = "https://secure.splitwise.com/api/v3.0/get_expenses?limit=500&dated_after="+from.toJSON()+"&dated_before="+to.toJSON();
-  var headers = {
-    "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
+  var payload = {
+    "limit": "500",
+    "dated_after": from.toJSON(),
+    "dated_before": to.toJSON()
   };
   
   var options = {
     "headers": headers,
+    "payload": payload,
     "method" : "GET",
+    "muteHttpExceptions": true
   };
     
   var expensesResponse = UrlFetchApp.fetch(expensesPath, options);
@@ -54,7 +62,9 @@ function filterExpenses(expenses, currentUserId, categories, tripGroupsIds) {
   var expensesToReturn = [];
   for (i = 0; i < expenses.length; i++) {
     var fullExpense = expenses[i];
-    if (fullExpense.deleted_at != null || fullExpense.payment == true || fullExpense.category.id == 18) { continue; }
+    if (fullExpense.deleted_at != null || fullExpense.payment == true || fullExpense.creation_method == "debt_consolidation") { 
+      continue; 
+    }
    
     var users = fullExpense.users;
     var cost = null;
@@ -101,16 +111,15 @@ function exportExpenses(expenses) {
   var firstCell = 3;
   for (i = 0; i < expenses.length; i++) {
     var expense = expenses[i];
-    var cost = expense.cost.replace(".", ",");
     sheet.getRange(firstCell+i, 1).setValue(expense.date);
     sheet.getRange(firstCell+i, 2).setValue(expense.category);
     sheet.getRange(firstCell+i, 3).setValue(expense.subcategory);
     sheet.getRange(firstCell+i, 4).setValue(expense.description);
     if (expense.currency == userCurrency) {
-      sheet.getRange(firstCell+i, 5).setValue(cost);
+      sheet.getRange(firstCell+i, 5).setValue(expense.cost);
     } else {
-      sheet.getRange(firstCell+i, 5).setNote(cost + " " + expense.currency)
-      sheet.getRange(firstCell+i, 5).setFormula('=Index(GOOGLEFINANCE("CURRENCY:' + expense.currency + userCurrency + '";"price";A' + (firstCell+i) + ';0;"DAILY");2;2)*' + cost)
+      sheet.getRange(firstCell+i, 5).setValue(0);
+      sheet.getRange(firstCell+i, 5).setBackground("red");
     }
   }
 }
@@ -123,7 +132,8 @@ function getCurrentUserId() {
      
      var options = {
        "headers": headers,
-       "method" : "GET"
+       "method" : "GET",
+       "muteHttpExceptions": true
     };
  
   var userResponse = UrlFetchApp.fetch(currentUserPath, options);
@@ -139,8 +149,9 @@ function getTripGroupsIds() {
      
      var options = {
        "headers": headers,
-       "method" : "GET"
-     };
+       "method" : "GET",
+       "muteHttpExceptions": true
+    };
   
   var groupsResponse = UrlFetchApp.fetch(groupsPath, options);
   var groups = JSON.parse(groupsResponse.getContentText()).groups;
@@ -163,7 +174,8 @@ function getCategories() {
      
      var options = {
        "headers": headers,
-       "method" : "GET"
+       "method" : "GET",
+       "muteHttpExceptions": true
     };
   
   var categoriesResponse = UrlFetchApp.fetch(categoriesPath, options);
