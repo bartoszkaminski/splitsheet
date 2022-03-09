@@ -98,6 +98,8 @@ function exportExpenses(expenses) {
   var allCells = sheet.getRange(3, 1, 197, 5);
   allCells.clearContent();
   allCells.setBackground("white");
+  var currencyFormat = configSheet.getRange(3, 4).getValue() || '##0.00';
+  sheet.getRangeList(["E3:E", "J3:J", "L3:16", "O3:16", "R3:16", "U16"]).setNumberFormat(currencyFormat);
   var firstCell = 3;
   for (i = 0; i < expenses.length; i++) {
     var expense = expenses[i];
