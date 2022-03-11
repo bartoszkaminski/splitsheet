@@ -4,24 +4,28 @@ function onOpen() {
       .addItem('Update','updateExpenses')
       .addToUi();
 }
- 
+
+function hasServiceAccess() {
+  const service = getSplitwiseService();
+  if (service.hasAccess()) { return true; }
+
+  const page = HtmlService.createHtmlOutput(
+    `<a href="${service.getAuthorizationUrl()}" target="_blank">Authorize Splitwise</a>` +
+    ' for this spreadsheet and try again');
+  SpreadsheetApp.getUi().showModalDialog(page, 'Authorize Splitwise');
+  return false;
+}
+
 function updateExpenses() {
-   var service = getSplitwiseService();
-   
-   if (service.hasAccess()) {     
-     var categories = getCategories();
-     var tripGroupsIds = getTripGroupsIds();
-     var currentUserId = getCurrentUserId();
-     var expenses = getExpenses();
-     var filteredExpenses = filterExpenses(expenses, currentUserId, categories, tripGroupsIds);
-     var sortedExpenses = sortExpenses(filteredExpenses);
-     exportExpenses(sortedExpenses);
-   }
-   else {     
-     var authorizationUrl = service.getAuthorizationUrl();
-     var ui = SpreadsheetApp.getUi();
-     ui.alert("Spreadsheet has no access yet. Open the following URL to authorize this spreadsheet in Splitwise and try again: " + authorizationUrl);
-   }
+   if (!hasServiceAccess()) return;
+
+   const categories = getCategories();
+   const tripGroupsIds = getTripGroupsIds();
+   const currentUserId = getCurrentUserId();
+   const expenses = getExpenses();
+   const filteredExpenses = filterExpenses(expenses, currentUserId, categories, tripGroupsIds);
+   const sortedExpenses = sortExpenses(filteredExpenses);
+   exportExpenses(sortedExpenses);
  }
 
 function filterExpenses(expenses, currentUserId, categories, tripGroupsIds) {
