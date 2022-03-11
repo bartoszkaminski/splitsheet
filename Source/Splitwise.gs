@@ -66,27 +66,27 @@ function sortExpenses(expenses) {
 }
 
 function exportExpenses(expenses) {
-  var configSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Config');
-  var userCurrency = configSheet.getRange(2, 4).getValue();
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var allCells = sheet.getRange(3, 1, 197, 5);
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const allCells = sheet.getRange(3, 1, 197, 5);
   allCells.clearContent();
   allCells.setBackground("white");
-  var firstCell = 3;
-  for (i = 0; i < expenses.length; i++) {
-    var expense = expenses[i];
-    var cost = expense.cost.replace(".", ",");
-    sheet.getRange(firstCell+i, 1).setValue(expense.date);
-    sheet.getRange(firstCell+i, 2).setValue(expense.category);
-    sheet.getRange(firstCell+i, 3).setValue(expense.subcategory);
-    sheet.getRange(firstCell+i, 4).setValue(expense.description);
+  if (!expenses.length) return;
+  const userCurrency = configSheet.getRange(2, 4).getValue();
+  const firstCell = 3;
+  const expenseRows = [];
+  const noteRows = [];
+  for (const [i, expense] of expenses.entries()) {
+    var cost = expense.cost; //.replace(".", ",");
     if (expense.currency == userCurrency) {
-      sheet.getRange(firstCell+i, 5).setValue(cost);
+      noteRows.push([null]);
     } else {
-      sheet.getRange(firstCell+i, 5).setNote(cost + " " + expense.currency)
-      sheet.getRange(firstCell+i, 5).setFormula('=Index(GOOGLEFINANCE("CURRENCY:' + expense.currency + userCurrency + '";"price";A' + (firstCell+i) + ';0;"DAILY");2;2)*' + cost)
+      noteRows.push([expense.cost + " " + expense.currency]);
+      cost = '=Index(GOOGLEFINANCE("CURRENCY:' + expense.currency + userCurrency + '";"price";A' + (firstCell+i) + ');2;2)*' + cost;
     }
+    expenseRows.push([expense.date, expense.category, expense.subcategory, expense.description, cost]);
   }
+  sheet.getRange(firstCell, 1, expenseRows.length, 5).setValues(expenseRows);
+  sheet.getRange(firstCell, 5, noteRows.length, 1).setNotes(noteRows);
 }
 
 // Splitwise API
