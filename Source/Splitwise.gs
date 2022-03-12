@@ -98,10 +98,18 @@ function exportExpenses(expenses) {
   var allCells = sheet.getRange(3, 1, 197, 5);
   allCells.clearContent();
   allCells.setBackground("white");
+  var currencyFormat = configSheet.getRange(3, 4).getValue() || '##0.00';
+  sheet.getRangeList(["E3:E", "J3:J", "L3:16", "O3:16", "R3:16", "U16"]).setNumberFormat(currencyFormat);
+  const locale = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetLocale();
+  const useCommaNumberSep = useCommaDecimalSep(locale);
   var firstCell = 3;
   for (i = 0; i < expenses.length; i++) {
     var expense = expenses[i];
-    var cost = expense.cost.replace(".", ",");
+    var cost = expense.cost;
+    if (useCommaNumberSep) {
+      // Fix number format for spreadhseet locale.
+      cost = cost.replace('.', ',');
+    }
     sheet.getRange(firstCell+i, 1).setValue(expense.date);
     sheet.getRange(firstCell+i, 2).setValue(expense.category);
     sheet.getRange(firstCell+i, 3).setValue(expense.subcategory);
