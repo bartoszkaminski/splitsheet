@@ -22,7 +22,7 @@ function updateExpenses() {
    const categories = getCategories();
    const tripGroupsIds = getTripGroupsIds();
    const currentUserId = getCurrentUserId();
-   const expenses = getExpenses();
+   const expenses = getSheetExpenses();
    const filteredExpenses = filterExpenses(expenses, currentUserId, categories, tripGroupsIds);
    const sortedExpenses = sortExpenses(filteredExpenses);
    exportExpenses(sortedExpenses);
@@ -93,8 +93,7 @@ function exportExpenses(expenses) {
   sheet.getRange(firstCell, 5, noteRows.length, 1).setNotes(noteRows);
 }
 
-// Splitwise API
-function getExpenses() {
+function getSheetExpenses() {
   const sheet = SpreadsheetApp.getActiveSheet();
   const from = sheet.getRange(1, 21).getValue();
   const to = sheet.getRange(2, 21).getValue();
@@ -104,8 +103,12 @@ function getExpenses() {
   } catch(e) {
     throw 'Please specify correct date range';
   }
-  
-  const expensesPath = "https://secure.splitwise.com/api/v3.0/get_expenses?limit=500&dated_after="+from.toJSON()+"&dated_before="+to.toJSON();
+  return getExpenses(from, to);
+}
+
+// Splitwise API
+function getExpenses(startDate, endDate, limit=500) {
+  const expensesPath = `https://secure.splitwise.com/api/v3.0/get_expenses?limit=${limit}&dated_after=${startDate.toJSON()}&dated_before=${endDate.toJSON()}`;
   const expensesResponse = callSplitwiseAPI(expensesPath);
   return expensesResponse.expenses;
 }
