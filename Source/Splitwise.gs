@@ -4,51 +4,29 @@ function onOpen() {
       .addItem('Update','updateExpenses')
       .addToUi();
 }
- 
-function updateExpenses() {
-   var service = getSplitwiseService();
-   
-   if (service.hasAccess()) {     
-     var categories = getCategories();
-     var tripGroupsIds = getTripGroupsIds();
-     var currentUserId = getCurrentUserId();
-     var expenses = getExpenses();
-     var filteredExpenses = filterExpenses(expenses, currentUserId, categories, tripGroupsIds);
-     var sortedExpenses = sortExpenses(filteredExpenses);
-     exportExpenses(sortedExpenses);
-   }
-   else {     
-     var authorizationUrl = service.getAuthorizationUrl();
-     var ui = SpreadsheetApp.getUi();
-     ui.alert("Spreadsheet has no access yet. Open the following URL to authorize this spreadsheet in Splitwise and try again: " + authorizationUrl);
-   }
- }
 
-function getExpenses() {
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var from = sheet.getRange(1, 21).getValue();
-  var to = sheet.getRange(2, 21).getValue();
-  try {
-    from.setSeconds(from.getSeconds() - 1);
-    to.setDate(to.getDate() + 1);
-  } catch(e) {
-    throw 'Please specify correct date range';
-  }
-  
-  var expensesPath = "https://secure.splitwise.com/api/v3.0/get_expenses?limit=500&dated_after="+from.toJSON()+"&dated_before="+to.toJSON();
-  var headers = {
-    "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
-  };
-  
-  var options = {
-    "headers": headers,
-    "method" : "GET",
-  };
-    
-  var expensesResponse = UrlFetchApp.fetch(expensesPath, options);
-  var expenses = JSON.parse(expensesResponse.getContentText()).expenses;
-  return expenses;
+function hasServiceAccess() {
+  const service = getSplitwiseService();
+  if (service.hasAccess()) { return true; }
+
+  const page = HtmlService.createHtmlOutput(
+    `<a href="${service.getAuthorizationUrl()}" target="_blank">Authorize Splitwise</a>` +
+    ' for this spreadsheet and try again');
+  SpreadsheetApp.getUi().showModalDialog(page, 'Authorize Splitwise');
+  return false;
 }
+
+function updateExpenses() {
+   if (!hasServiceAccess()) return;
+
+   const categories = getCategories();
+   const tripGroupsIds = getTripGroupsIds();
+   const currentUserId = getCurrentUserId();
+   const expenses = getSheetExpenses();
+   const filteredExpenses = filterExpenses(expenses, currentUserId, categories, tripGroupsIds);
+   const sortedExpenses = sortExpenses(filteredExpenses);
+   exportExpenses(sortedExpenses);
+ }
 
 function filterExpenses(expenses, currentUserId, categories, tripGroupsIds) {
   var expensesToReturn = [];
@@ -92,62 +70,61 @@ function sortExpenses(expenses) {
 }
 
 function exportExpenses(expenses) {
-  var configSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Config');
-  var userCurrency = configSheet.getRange(2, 4).getValue();
-  var sheet = SpreadsheetApp.getActiveSheet();
-  var allCells = sheet.getRange(3, 1, 197, 5);
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const allCells = sheet.getRange(3, 1, 197, 5);
   allCells.clearContent();
   allCells.setBackground("white");
-  var firstCell = 3;
-  for (i = 0; i < expenses.length; i++) {
-    var expense = expenses[i];
-    var cost = expense.cost.replace(".", ",");
-    sheet.getRange(firstCell+i, 1).setValue(expense.date);
-    sheet.getRange(firstCell+i, 2).setValue(expense.category);
-    sheet.getRange(firstCell+i, 3).setValue(expense.subcategory);
-    sheet.getRange(firstCell+i, 4).setValue(expense.description);
+  if (!expenses.length) return;
+  const userCurrency = configSheet.getRange(2, 4).getValue();
+  const firstCell = 3;
+  const expenseRows = [];
+  const noteRows = [];
+  for (const [i, expense] of expenses.entries()) {
+    var cost = expense.cost; //.replace(".", ",");
     if (expense.currency == userCurrency) {
-      sheet.getRange(firstCell+i, 5).setValue(cost);
+      noteRows.push([null]);
     } else {
-      sheet.getRange(firstCell+i, 5).setNote(cost + " " + expense.currency)
-      sheet.getRange(firstCell+i, 5).setFormula('=Index(GOOGLEFINANCE("CURRENCY:' + expense.currency + userCurrency + '";"price";A' + (firstCell+i) + ';0;"DAILY");2;2)*' + cost)
+      noteRows.push([expense.cost + " " + expense.currency]);
+      cost = '=Index(GOOGLEFINANCE("CURRENCY:' + expense.currency + userCurrency + '";"price";A' + (firstCell+i) + ');2;2)*' + cost;
     }
+    expenseRows.push([expense.date, expense.category, expense.subcategory, expense.description, cost]);
   }
+  sheet.getRange(firstCell, 1, expenseRows.length, 5).setValues(expenseRows);
+  sheet.getRange(firstCell, 5, noteRows.length, 1).setNotes(noteRows);
+}
+
+function getSheetExpenses() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const from = sheet.getRange(1, 21).getValue();
+  const to = sheet.getRange(2, 21).getValue();
+  try {
+    from.setSeconds(from.getSeconds() - 1);
+    to.setDate(to.getDate() + 1);
+  } catch(e) {
+    throw 'Please specify correct date range';
+  }
+  return getExpenses(from, to);
+}
+
+// Splitwise API
+function getExpenses(startDate, endDate, limit=500) {
+  const expensesPath = `https://secure.splitwise.com/api/v3.0/get_expenses?limit=${limit}&dated_after=${startDate.toJSON()}&dated_before=${endDate.toJSON()}`;
+  const expensesResponse = callSplitwiseAPI(expensesPath);
+  return expensesResponse.expenses;
 }
 
 function getCurrentUserId() {
-  var currentUserPath = "https://secure.splitwise.com/api/v3.0/get_current_user";
-  var headers = {
-       "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
-     };
-     
-     var options = {
-       "headers": headers,
-       "method" : "GET"
-    };
- 
-  var userResponse = UrlFetchApp.fetch(currentUserPath, options);
-  var currentUserId = JSON.parse(userResponse.getContentText()).user.id;
-  return currentUserId;
+  const currentUserPath = "https://secure.splitwise.com/api/v3.0/get_current_user";
+  const userResponse = callSplitwiseAPI(currentUserPath);
+  return userResponse.user.id;
 }
 
 function getTripGroupsIds() {
-  var groupsPath = "https://secure.splitwise.com/api/v3.0/get_groups";
-  var headers = {
-       "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
-     };
-     
-     var options = {
-       "headers": headers,
-       "method" : "GET"
-     };
-  
-  var groupsResponse = UrlFetchApp.fetch(groupsPath, options);
-  var groups = JSON.parse(groupsResponse.getContentText()).groups;
+  const groupsPath = "https://secure.splitwise.com/api/v3.0/get_groups";
+  const groupsResponse = callSplitwiseAPI(groupsPath);
   
   var tripGroupsIdsToReturn = [];
-  for (i = 0; i < groups.length; i++) {
-    var group = groups[i];
+  for (const group of groupsResponse.groups) {
     if (group.group_type == "trip" || group.group_type == "travel") {
       tripGroupsIdsToReturn.push(group.id);
     }
@@ -156,29 +133,25 @@ function getTripGroupsIds() {
 }
 
 function getCategories() {
-  var categoriesPath = "https://secure.splitwise.com/api/v3.0/get_categories";
-  var headers = {
-       "Authorization": "OAuth " + getSplitwiseService().getAccessToken()
-     };
-     
-     var options = {
-       "headers": headers,
-       "method" : "GET"
-    };
-  
-  var categoriesResponse = UrlFetchApp.fetch(categoriesPath, options);
-  var categories = JSON.parse(categoriesResponse.getContentText()).categories;
+  const categoriesPath = "https://secure.splitwise.com/api/v3.0/get_categories"; 
+  const categoriesResponse = callSplitwiseAPI(categoriesPath);
  
-  var categoriesToReturn = [];
-  for (i = 0; i < categories.length; i++) {
-    var subcategories = categories[i].subcategories;
-    for (j = 0; j < subcategories.length; j++) {
-      var subcategory = {
-        category: categories[i].name,
-        subcategory: subcategories[j].name
+  const categoriesToReturn = [];
+  for (const cat of categoriesResponse.categories) {
+    for (const subcat of cat.subcategories) {
+      categoriesToReturn[subcat.id] = {
+        category: cat.name,
+        subcategory: subcat.name
       };
-      categoriesToReturn[subcategories[j].id] = subcategory;
     }
   }
   return categoriesToReturn;
+}
+
+function callSplitwiseAPI(url, options={}) {
+  options.headers = Object.assign({
+    Authorization: "OAuth " + getSplitwiseService().getAccessToken(),
+  }, options.headers);
+  response = UrlFetchApp.fetch(url, options);
+  return JSON.parse(response.getContentText());
 }
